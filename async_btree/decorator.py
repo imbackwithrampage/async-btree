@@ -2,6 +2,7 @@
 from typing import Any
 
 from .definition import FAILURE, SUCCESS, AsyncInnerFunction, CallableFunction, ExceptionDecorator, node_metadata
+from curio import sleep
 
 __all__ = [
     'alias',
@@ -81,7 +82,8 @@ def always_success(child: CallableFunction) -> AsyncInnerFunction:
             if child_result:
                 result = child_result
 
-        except Exception:
+        except Exception as e:
+            ExceptionDecorator(e)
             return result
 
         return result
@@ -156,7 +158,8 @@ def is_failure(child: CallableFunction) -> AsyncInnerFunction:
     async def _is_failure():
         try:
             return SUCCESS if not bool(await child()) else FAILURE
-        except Exception:  # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
+            ExceptionDecorator(e)
             return SUCCESS
 
     return _is_failure
@@ -204,12 +207,13 @@ def retry(child: CallableFunction, max_retry: int = 3) -> AsyncInnerFunction:
         while not result and (infinite_retry_condition or retry_count < max_retry):
             try:
                 result = await child()
-
+                # small pause between retries
+                await sleep(0.01)
             except Exception as e:
-                # return last failure exception
+                e = ExceptionDecorator(e)
                 if not infinite_retry_condition:  # avoid data allocation if never returned
-                    result = ExceptionDecorator(e)
-
+                    result = e
+                
             retry_count += 1
 
         return result
