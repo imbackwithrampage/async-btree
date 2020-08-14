@@ -13,6 +13,7 @@ Function signature of async function implementation:
 """
 # from collections import namedtuple
 from typing import Any, Awaitable, Callable, List, NamedTuple, Optional, TypeVar, Union
+from curio import TaskCancelled
 
 __all__ = [
     'CallableFunction',
@@ -46,6 +47,9 @@ class ExceptionDecorator(Exception):
     """
 
     def __init__(self, exception: Exception):
+        # Allow Taks Cancelled to propgate through the tree
+        if isinstance(exception, TaskCancelled):
+            raise(TaskCancelled)
         super().__init__()
         self.exception = exception
 
