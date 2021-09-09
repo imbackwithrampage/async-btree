@@ -1,4 +1,6 @@
-from async_btree import FAILURE, SUCCESS, ExceptionDecorator, node_metadata
+import pytest
+
+from async_btree import FAILURE, SUCCESS, ControlFlowException, node_metadata
 
 
 def test_truthy():
@@ -12,20 +14,28 @@ def test_falsy():
     assert not bool([])
     assert not FAILURE
     assert not bool(FAILURE)
-    assert not bool(ExceptionDecorator(Exception()))
+    assert not bool(ControlFlowException(Exception()))
 
 
 def test_exception_decorator_falsy():
     assert bool(Exception())
-    assert not bool(ExceptionDecorator(Exception()))
-    assert str(ExceptionDecorator(Exception("test"))) == str(Exception("test"))
-    assert repr(ExceptionDecorator(Exception("test"))) == repr(Exception("test"))
+    assert not bool(ControlFlowException(Exception()))
+    assert str(ControlFlowException(Exception("test"))) == str(Exception("test"))
+    assert repr(ControlFlowException(Exception("test"))) == repr(Exception("test"))
 
 
-def test_node_metadata_do_not_change_behavior(kernel):
+def test_exception_deduplicate():
+    a = ControlFlowException(Exception("test 1"))
+    b = ControlFlowException(Exception("test 2"))
+    assert a != b
+    assert a == ControlFlowException.instanciate(a)
+
+
+@pytest.mark.curio
+async def test_node_metadata_do_not_change_behavior():
     async def a_func():
         return 'a'
 
-    assert kernel.run(a_func) == 'a'
+    assert await a_func() == 'a'
     # no change on behavior
-    assert kernel.run(node_metadata()(a_func)) == 'a'
+    assert await node_metadata()(a_func)() == 'a'

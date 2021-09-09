@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Async Behaviour Tree for Python &mdash; async_btree 1.0.1 documentation</title>
+  <title>Async Behaviour Tree for Python &mdash; async_btree 1.1.1 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -187,9 +187,9 @@
 <h3>Why another library so ?<a class="headerlink" href="#why-another-library-so" title="Permalink to this headline">¶</a></h3>
 <p><strong>SIMPLICITY</strong></p>
 <p>When you study behavior tree implementation, reactive node, dynamic change, runtime execution, etc …
-At a moment you’re build more or less something that mimic an evaluator ‘eval/apply’ or a compilator, with a complex hierachical set of class.
-All complexity came with internal state management, using tree of blackboard to avoid global variable, multithreading issue, maybe few callback etc …
-This break the simplicity and beauty of your initial design.</p>
+At a moment you’re build more or less something that mimic an evaluator ‘eval/apply’ or a compilator, with a complex hierachical set of class.</p>
+<p>All complexity came with internal state management, using tree of blackboard to avoid global variable, multithreading issue, maybe few callback etc …</p>
+<p>This break the simplicity and beauty of your initial design.</p>
 <p>What I find usefull with behavior tree:</p>
 <ul class="simple">
 <li><p>clarity of expression</p></li>
@@ -214,7 +214,7 @@ By this way:</p>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">b_decorator</span><span class="p">(</span><span class="n">child_value</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A great decorator...&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;b</span><span class="si">{child_value}{other}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;b</span><span class="si">{</span><span class="n">child_value</span><span class="si">}{</span><span class="n">other</span><span class="si">}</span><span class="s2">&quot;</span>
 
 <span class="k">assert</span> <span class="n">run</span><span class="p">(</span><span class="n">decorate</span><span class="p">(</span><span class="n">a_func</span><span class="p">,</span> <span class="n">b_decorator</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;ba&quot;</span>
 </pre></div>
@@ -224,7 +224,8 @@ Note that <code class="docutils literal notranslate"><span class="pre">decorate(
 <p>Few guidelines of this implementation:</p>
 <ul class="simple">
 <li><p>In order to mimic all NodeStatus (success, failure, running), I replace this by truthy/falsy meaning of evaluation value.
-A special dedicated exception decorate standard exception in order to give them a Falsy meaning.</p></li>
+A special dedicated exception decorate standard exception in order to give them a Falsy meaning (<code class="docutils literal notranslate"><span class="pre">ControlFlowException</span></code>).
+By default, exception are raised like happen usually until you catch them.</p></li>
 <li><p>Blackboard pattern, act as a manager of context variable for behavior tree.
 With python 3, please… simply use <a class="reference external" href="https://docs.python.org/3/library/contextvars.html">contextvars</a> !</p></li>
 <li><p>In order to be able to build a sematic tree, I’ve introduce a metadata tuple added on function implementation.</p></li>
@@ -281,7 +282,7 @@ to declare a composition of functions. I think it’s true for most of main use 
 <p>Wanna style have an abtract tree of our behaviour tree ?</p>
 <p>Functions from async-btree build an abstract tree for you.
 If you lookup in code, you should see an annotation “node_metadata” on internal implementation.
-This decorator add basic information like function name, parameters, and childreen relation ship.</p>
+This decorator add basic information like function name, parameters, and children relation ship.</p>
 <p>This abstract tree can be retreived and stringified with <code class="docutils literal notranslate"><span class="pre">analyze</span></code> and <code class="docutils literal notranslate"><span class="pre">stringify_analyze</span></code>.
 Here the profile:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">analyze</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="n">CallableFunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span> <span class="c1"># here we have our &quot;abtract tree code&quot;</span>
@@ -307,6 +308,13 @@ Here the profile:</p>
                      target: hello
 </pre></div>
 </div>
+<p>Note about action and condition method:</p>
+<ul class="simple">
+<li><p>you could use sync or async function</p></li>
+<li><p>you could specify a return value with SUCCESS or FAILURE</p></li>
+<li><p>function with no return value will be evaluated as FAILURE until you decorate them with a <code class="docutils literal notranslate"><span class="pre">always_success</span></code>or <code class="docutils literal notranslate"><span class="pre">always_failure</span></code></p></li>
+</ul>
+<p>See this <a class="reference external" href="https://raw.githubusercontent.com/geronimo-iia/async-btree/master/examples/tutorial_1.py">example/tutorial_1.py</a> for more information.</p>
 </div>
 </div>
 <div class="section" id="contents">
