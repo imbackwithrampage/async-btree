@@ -247,7 +247,6 @@ def retry(child: CallableFunction, max_retry: int = 3) -> AsyncInnerFunction:
 
         while not bool(result) and retry_count != 0:
             result = await _child()
-            print(f"result : {result}")
             retry_count -= 1
 
         return result
