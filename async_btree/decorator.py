@@ -3,6 +3,8 @@ from typing import Any
 
 from .definition import FAILURE, SUCCESS, AsyncInnerFunction, CallableFunction, ControlFlowException, node_metadata
 from .utils import to_async
+from curio import sleep
+
 
 __all__ = [
     'alias',
@@ -248,6 +250,7 @@ def retry(child: CallableFunction, max_retry: int = 3) -> AsyncInnerFunction:
         while not bool(result) and retry_count != 0:
             result = await _child()
             retry_count -= 1
+            await sleep(0.01)
 
         return result
 
